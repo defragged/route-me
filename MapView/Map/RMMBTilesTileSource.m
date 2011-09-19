@@ -90,10 +90,10 @@
     NSInteger x    = tile.x;
     
     // MBTiles style
-    // NSInteger y = pow(2, zoom) - tile.y - 1;
+    NSInteger y = pow(2, zoom) - tile.y - 1;
     
     // OSM Style
-    NSInteger y = tile.y;
+//    NSInteger y = tile.y;
     
     NSLog(@"select tile_data from tiles where zoom_level = %d and tile_column = %d and tile_row = %d", zoom, x, y);
 
