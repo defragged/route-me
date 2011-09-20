@@ -102,8 +102,16 @@
                                [NSNumber numberWithFloat:x], 
                                [NSNumber numberWithFloat:y]];
     
-    if ([db hadError])
-        return [RMTileImage dummyTile:tile];
+    if ([db hadError]){
+		
+		// For WTCombinedMapSource to correctly determine when a tile hasn't been found,
+		// this need to return nil
+		return nil;
+		
+		// If this is being used as the only source for a mapView, this should return a dummy
+		// tile (or, whatever is checking for tiles from these should subtitute a dummy tile).
+		// return [RMTileImage dummyTile:tile];
+	}
     
     [results next];
     
@@ -111,12 +119,19 @@
 
     RMTileImage *image;
     
-    if ( ! data)
-        image = [RMTileImage dummyTile:tile];
-    
-    else
+    if ( ! data){
+		// For WTCombinedMapSource to correctly determine when a tile hasn't been found,
+		// this need to return nil
+		image = nil;
+		
+		// If this is being used as the only source for a mapView, this should return a dummy
+		// tile (or, whatever is checking for tiles from these should subtitute a dummy tile).
+		// image = [RMTileImage dummyTile:tile];
+		
+    }else{
         image = [RMTileImage imageForTile:tile withData:data];
-    
+    }
+	
     [results close];
     
     return image;
