@@ -94,8 +94,6 @@
     
     // OSM Style
 //    NSInteger y = tile.y;
-    
-    NSLog(@"select tile_data from tiles where zoom_level = %d and tile_column = %d and tile_row = %d", zoom, x, y);
 
     FMResultSet *results = [db executeQuery:@"select tile_data from tiles where zoom_level = ? and tile_column = ? and tile_row = ?", 
                                [NSNumber numberWithFloat:zoom], 
