@@ -103,7 +103,7 @@
                                [NSNumber numberWithFloat:y]];
     
     if ([db hadError])
-        return [RMTileImage dummyTile:tile];
+        return nil;
     
     [results next];
     
@@ -112,7 +112,7 @@
     RMTileImage *image;
     
     if ( ! data)
-        image = [RMTileImage dummyTile:tile];
+        image = nil;
     
     else
         image = [RMTileImage imageForTile:tile withData:data];
