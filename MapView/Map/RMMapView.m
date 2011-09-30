@@ -570,8 +570,13 @@
 	{
 		if(lastGesture.numTouches == 0)
 		{
+			
 			CALayer* hit = [self.contents.overlay hitTest:[touch locationInView:self]];
-			//		RMLog(@"LAYER of type %@",[hit description]);
+			
+			CGPoint currLocation = [touch locationInView:self];
+			currLocation = [hit convertPoint:currLocation toLayer:hit];
+			
+			RMLog(@"LAYER of type %@ at %.0f, %.0f",[hit description], currLocation.x, currLocation.y);
 			
 			if (hit != nil) {
 				CALayer *superlayer = [hit superlayer]; 
