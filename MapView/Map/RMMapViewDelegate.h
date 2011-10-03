@@ -29,6 +29,7 @@
 
 @class RMMapView;
 @class RMMarker;
+@class RMPath;
 
 /// Use this for notifications of map panning, zooming, and taps on the RMMapView.
 @protocol RMMapViewDelegate <NSObject>
@@ -59,6 +60,8 @@
 - (void) tapOnLabelForMarker: (RMMarker*) marker onMap: (RMMapView*) map;
 - (BOOL) mapView:(RMMapView *)map shouldDragMarker:(RMMarker *)marker withEvent:(UIEvent *)event;
 - (void) mapView:(RMMapView *)map didDragMarker:(RMMarker *)marker withEvent:(UIEvent *)event;
+
+- (void) tapOnPoint:(CGPoint) point onPath: (RMPath*) path onMap:(RMMapView*) map;
 
 - (void) afterMapTouch: (RMMapView*) map;
 

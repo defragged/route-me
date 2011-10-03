@@ -147,6 +147,7 @@ typedef struct {
 	BOOL _delegateHasShouldDragMarker;
 	BOOL _delegateHasDidDragMarker;
 	BOOL _delegateHasDragMarkerPosition;
+	BOOL _delegateHasTapOnPath;
 	
 	NSTimer *_decelerationTimer;
 	CGSize _decelerationDelta;

@@ -33,6 +33,7 @@
 
 #import "RMMercatorToScreenProjection.h"
 #import "RMMarker.h"
+#import "RMPath.h"
 #import "RMProjection.h"
 #import "RMMarkerManager.h"
 
@@ -200,6 +201,8 @@
    	_delegateHasDidDragMarker = [(NSObject*) delegate respondsToSelector: @selector(mapView: didDragMarker: withEvent:)];
 	
 	_delegateHasDragMarkerPosition = [(NSObject*) delegate respondsToSelector: @selector(dragMarkerPosition: onMap: position:)];
+	
+	_delegateHasTapOnPath = [(NSObject*) delegate respondsToSelector: @selector(tapOnPoint: onPath: onMap:)];
 }
 
 - (id<RMMapViewDelegate>) delegate
@@ -591,9 +594,16 @@
 						[delegate tapOnLabelForMarker:(RMMarker*)superlayer onMap:self];
 					}
 				} else if ([superlayer superlayer] != nil && [[superlayer superlayer] isKindOfClass: [RMMarker class]]) {
-                                        if (_delegateHasTapOnLabelForMarker) {
-                                                [delegate tapOnLabelForMarker:(RMMarker*)[superlayer superlayer] onMap:self];
-                                        } 
+					if (_delegateHasTapOnLabelForMarker) {
+						[delegate tapOnLabelForMarker:(RMMarker*)[superlayer superlayer] onMap:self];
+					}
+				
+				// See if tap was on a path.
+				}else if([hit isKindOfClass: [RMPath class]]){
+					if(_delegateHasTapOnPath){
+						[delegate tapOnPoint:currLocation onPath:(RMPath*)hit onMap:self];
+					}
+					
 				} else if (_delegateHasSingleTapOnMap) {
 					[delegate singleTapOnMap: self At: [touch locationInView:self]];
 				}
