@@ -34,6 +34,10 @@
 @class RMMapContents;
 @class RMMapView;
 
+// The maximum distance from the path a tap can be
+// to count as a tap on the line
+#define kDefaultTapThresholdDistance 22
+
 /*! \brief buggy, incomplete, untested; overlays paths/polygons on map
  */
 @interface RMPath : RMMapLayer <RMMovingMapLayer>

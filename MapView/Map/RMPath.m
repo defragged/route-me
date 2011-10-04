@@ -43,10 +43,6 @@
 
 #define kDefaultLineWidth 2
 
-// The maximum distance from the path a tap can be
-// to count as a tap on the line
-#define kDefaultTapThresholdDistance 22
-
 - (id) initWithContents: (RMMapContents*)aContents
 {
 	if (![super init])
