@@ -406,7 +406,7 @@
 static void pointsApplier(void* info, const CGPathElement* element){
 	// Similar to implementation at http://www.mlsite.net/blog/?p=1312
 	
-	NSMutableArray *discoveredPoints = (__bridge NSMutableArray*) info;
+	NSMutableArray *discoveredPoints = (NSMutableArray*) info;
 	
 	// Determine the number of points from
 	int nPoints;
@@ -455,7 +455,7 @@ static void pointsApplier(void* info, const CGPathElement* element){
 	if(path){
 		NSMutableArray *points = [[NSMutableArray alloc]init];
 		
-		CGPathApply(path, (__bridge void*)points, pointsApplier);
+		CGPathApply(path, points, pointsApplier);
 		
 		return points;		
 	}else{
@@ -579,7 +579,7 @@ CGFloat distanceBetweenPoints(CGPoint first, CGPoint second){
 	}
 }
 
--(BOOL)pointNearPath:(CGPoint)tap{
+-(BOOL)isPointNearPath:(CGPoint)tap{
 	return [self isPoint:tap withinDistance:kDefaultTapThresholdDistance projected:YES];
 }
 
