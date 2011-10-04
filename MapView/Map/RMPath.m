@@ -453,7 +453,7 @@ static void pointsApplier(void* info, const CGPathElement* element){
  */
 -(NSArray*)points{
 	if(path){
-		NSMutableArray *points = [[NSMutableArray alloc]init];
+		NSMutableArray *points = [[[NSMutableArray alloc]init]autorelease];
 		
 		CGPathApply(path, points, pointsApplier);
 		
