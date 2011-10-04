@@ -598,8 +598,8 @@
 						[delegate tapOnLabelForMarker:(RMMarker*)[superlayer superlayer] onMap:self];
 					}
 				
-				// See if tap was on a path.
-				}else if([hit isKindOfClass: [RMPath class]]){
+				// See if tap was on a path layer, and close enough to the layer's path.
+				}else if([hit isKindOfClass: [RMPath class]] && [(RMPath*)hit isPointNearPath:currLocation]){
 					if(_delegateHasTapOnPath){
 						[delegate tapOnPoint:currLocation onPath:(RMPath*)hit onMap:self];
 					}
