@@ -43,6 +43,10 @@
 
 #define kDefaultLineWidth 2
 
+// The maximum distance from the path a tap can be
+// to count as a tap on the line
+#define kDefaultTapThresholdDistance 22
+
 - (id) initWithContents: (RMMapContents*)aContents
 {
 	if (![super init])
@@ -118,7 +122,10 @@
 	
 	CGRect boundsInMercators = CGPathGetBoundingBox(path);
 	boundsInMercators = CGRectInset(boundsInMercators, -scaledLineWidth, -scaledLineWidth);
-	pixelBounds = CGRectInset(boundsInMercators, -scaledLineWidth, -scaledLineWidth);
+	
+	// Increase the size of the bounds by twice the tapping threshold to allow
+	// for taps on points that lie near the edges of the layer
+	pixelBounds = CGRectInset(boundsInMercators, -scaledLineWidth - (kDefaultTapThresholdDistance * 2), -scaledLineWidth - (kDefaultTapThresholdDistance * 2));
 	
 	pixelBounds = RMScaleCGRectAboutPoint(pixelBounds, 1.0f / scale, CGPointZero);
 	
