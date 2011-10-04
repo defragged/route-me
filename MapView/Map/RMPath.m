@@ -394,4 +394,193 @@
 	[self recalculateGeometry];
 }
 
+#pragma mark - Tap Detection
+
+/**
+ * An implementation of CGPathApplierFunction that takes a single CGPoint
+ * in the path and adds it to an NSMutableArray as an NSValue.
+ *
+ * @param info The NSMutableArray to add the values to.
+ * @param element The element in the path discovered.
+ */
+static void pointsApplier(void* info, const CGPathElement* element){
+	// Similar to implementation at http://www.mlsite.net/blog/?p=1312
+	
+	NSMutableArray *discoveredPoints = (__bridge NSMutableArray*) info;
+	
+	// Determine the number of points from
+	int nPoints;
+	switch (element->type)
+	{
+		case kCGPathElementMoveToPoint:
+			nPoints = 1;
+			break;
+		case kCGPathElementAddLineToPoint:
+			nPoints = 1;
+			break;
+		case kCGPathElementAddQuadCurveToPoint:
+			nPoints = 2;
+			break;
+		case kCGPathElementAddCurveToPoint:
+			nPoints = 3;
+			break;
+		case kCGPathElementCloseSubpath:
+			nPoints = 0;
+			break;
+		default:
+			// Element is not a valid type
+			// Make discoveredPoints nil.
+			discoveredPoints = nil;
+	}
+	
+	// Bail out if the discoveredPoints array is nil
+	if(discoveredPoints){
+		// Otherwise, for each of the points in the points array
+		CGPoint* points = element->points;
+		for(int i = 0; i < nPoints; i++){
+			// Add them to the array of discovered points
+			[discoveredPoints addObject:[NSValue valueWithCGPoint:points[i]]];
+		}
+	}
+}
+
+/**
+ * Returns an array of NSValues representing the CGPoints on this
+ * journey.
+ *
+ * @return An array of the points that form this path, or nil if an
+ *	error occurs.
+ */
+-(NSArray*)points{
+	if(path){
+		NSMutableArray *points = [[NSMutableArray alloc]init];
+		
+		CGPathApply(path, (__bridge void*)points, pointsApplier);
+		
+		return points;		
+	}else{
+		return nil;
+	}
+}
+
+/**
+ * Returns an array of NSValues representing the CGPoints on this
+ * journey projected to their screen coordinates.
+ *
+ * @param projection the projection used to project the points.
+ * @return An array of the points that form this path, or nil if an
+ *	error occurs.
+ */
+-(NSArray*)pointsProjectedWithProjection:(RMMercatorToScreenProjection*)projection{
+	
+	// The points with their local coordinates
+	NSArray* points = [self points];
+	
+	NSMutableArray *convertedPoints = [NSMutableArray arrayWithCapacity:[points count]];
+	
+	for(NSValue *pointValue in points){
+		CGPoint point = [pointValue CGPointValue];
+		
+		// Flip the y axis (screen coordinates are reversed)
+		RMProjectedPoint mercator = RMMakeProjectedPoint(point.x, -point.y);
+		
+		// Reapply the offset
+		mercator.easting = mercator.easting + self.projectedLocation.easting;
+		mercator.northing = mercator.northing + self.projectedLocation.northing;
+		
+		// Project it based on the screen projection
+		CGPoint convertedPoint = [projection projectXYPoint:mercator];
+		
+		[convertedPoints addObject:[NSValue valueWithCGPoint:convertedPoint]];
+	}
+	
+	return convertedPoints;
+}
+
++(CGPoint)closestPointToPoint:(CGPoint)point onLineFormedByFirstPoint:(CGPoint)p1 secondPoint:(CGPoint)p2 {
+	// http://paulbourke.net/geometry/pointline/
+	
+	double xDelta = p2.x - p1.x;
+	double yDelta = p2.y - p1.y;
+	
+	// Ensure the two points are not the same
+	if(xDelta == 0 && yDelta == 0){
+		return p1;
+		
+	}else{
+		double u = ((point.x - p1.x) * xDelta + (point.y - p1.y) * yDelta) / (xDelta * xDelta + yDelta * yDelta);
+		
+		if(u < 0){
+			return p1;
+			
+		}else if(u > 1){
+			return p2;
+			
+		}else{
+			return CGPointMake(p1.x + u * xDelta, p1.y + u * yDelta);
+			
+		}
+	}
+}
+
+CGFloat distanceBetweenPoints(CGPoint first, CGPoint second){
+	// Pythagoras
+	CGFloat a = second.x - first.x;
+	CGFloat b = second.y - first.y;
+	
+	return sqrt(a*a + b*b);
+}
+
++(BOOL)isPoint:(CGPoint)point withinDistance:(int)maxDistance ofPoints:(NSArray*)points{
+	for(int i = 1; i < [points count]; i++){
+		// Get the two points we're checking for intersection between
+		NSValue *firstValue = [points objectAtIndex:i - 1];
+		NSValue *secondValue = [points objectAtIndex:i];
+		
+		CGPoint firstPoint = [firstValue CGPointValue];
+		CGPoint secondPoint = [secondValue CGPointValue];
+		
+		CGPoint closestPointOnLine = [RMPath closestPointToPoint:point
+										onLineFormedByFirstPoint:firstPoint
+													 secondPoint:secondPoint];
+		
+		if(distanceBetweenPoints(point, closestPointOnLine) < maxDistance){
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
+-(BOOL)isPoint:(CGPoint)point withinDistance:(int)distance{
+	return [RMPath isPoint:point withinDistance:distance ofPoints:[self points]];
+}
+
+-(BOOL)isPoint:(CGPoint)point withinDistance:(int)maxDistance withScreenProjection:(RMMercatorToScreenProjection*)projection{
+	return [RMPath isPoint:point withinDistance:maxDistance ofPoints:[self pointsProjectedWithProjection:projection]];
+}
+
+/**
+ * Determines whether or not a point falls within a given distance
+ * of this path in the path's local coordinate space.
+ *
+ * @param point The point to check.
+ * @param distance The distance from the line (in pixels) the point needs
+ *	to be from the line to count as successful.
+ * @param projected YES if the comparison should be performed in the screen's
+ *	coordinate space. NO if the path's coordinate space should be used.
+ * @return YES if the point is within the specified distance. NO otherwise.
+ */
+-(BOOL)isPoint:(CGPoint)point withinDistance:(int)distance projected:(BOOL)projected{
+	if(projected){
+		return [self isPoint:point withinDistance:distance withScreenProjection:[mapContents mercatorToScreenProjection]];
+	}else{
+		return [self isPoint:point withinDistance:distance];
+	}
+}
+
+-(BOOL)pointNearPath:(CGPoint)tap{
+	return [self isPoint:tap withinDistance:kDefaultTapThresholdDistance projected:YES];
+}
+
 @end

@@ -115,5 +115,15 @@
 /// There is no requirement that a path be closed.
 - (void) closePath;
 
+#pragma mark - Tap Detection
+
+/**
+ * Determines whether a point is close enough to the path to
+ * count as a tap.
+ * 
+ * @param The screen coordinates of the tap.
+ * @return YES if the tap is close enough to the path. NO otherwise.
+ */
+-(BOOL)isPointNearPath:(CGPoint)point;
 
 @end
